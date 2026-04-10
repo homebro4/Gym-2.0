@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoop Strength — AI Training App</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #F4612A;
+  --orange-dim: rgba(244,97,42,0.13);
+  --dark: #0A0A0A;
+  --card: #141414;
+  --card2: #1c1c1c;
+  --border: #222;
+  --text: #E0E0E0;
+  --muted: #555;
+  --green: #3DBE6E;
+  --green-dim: rgba(61,190,110,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10,10,10,0.96);
+  backdrop-filter: blur(16px);
+  z-index: 100;
+}
+.nav-logo { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; color:#fff; }
+.nav-logo span { color:var(--orange); }
+.week-badge {
+  background: var(--orange-dim);
+  border: 1px solid rgba(244,97,42,0.3);
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  background: var(--dark);
+  position: sticky;
+  top: 57px;
+  z-index: 99;
+}
+.tab {
+  flex: 1;
+  padding: 13px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+.page { display:none; padding:20px; max-width:820px; margin:0 auto; }
+.page.active { display:block; animation: fadeUp 0.3s ease; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.hero { text-align:center; padding:32px 0 24px; }
+.hero-tag {
+  display:inline-block;
+  background: var(--orange-dim);
+  color: var(--orange);
+  font-size:11px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase;
+  padding:5px 14px; border-radius:20px; margin-bottom:16px;
+  border:1px solid rgba(244,97,42,0.3);
+}
+.hero h1 {
+  font-family:'Bebas Neue',sans-serif;
+  font-size: clamp(50px,11vw,90px);
+  line-height:0.9; color:#fff; letter-spacing:2px;
+}
+.hero h1 span { color:var(--orange); }
+.hero p { margin-top:14px; color:var(--muted); font-size:13px; }
+
+.stats-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:24px; }
+.stat-box {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:14px; text-align:center;
+}
+.stat-box .val { font-family:'Bebas Neue',sans-serif; font-size:34px; color:var(--orange); line-height:1; }
+.stat-box .lbl { font-size:10px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:1px; }
+
+.day-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:24px; }
+.day-btn {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:16px 10px; cursor:pointer;
+  text-align:center; transition:all 0.2s; font-family:'DM Sans',sans-serif;
+}
+.day-btn:hover { border-color:var(--orange); }
+.day-btn.selected { border-color:var(--orange); background:var(--orange-dim); }
+.day-btn .d-num { font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--orange); line-height:1; }
+.day-btn .d-title { font-size:11px; font-weight:600; color:var(--text); margin-top:5px; }
+.day-btn .d-sub { font-size:10px; color:var(--muted); margin-top:2px; }
+
+.section-title {
+  font-family:'Bebas Neue',sans-serif; font-size:16px;
+  letter-spacing:1.5px; color:var(--muted);
+  margin-bottom:10px; text-transform:uppercase;
+}
+
+.exercise-list { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; }
+.ex-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px;
+  display:flex; align-items:center; gap:12px;
+  transition:border-color 0.2s;
+}
+.ex-card.done { border-color:var(--green); background:var(--green-dim); }
+.ex-check {
+  width:26px; height:26px; border-radius:7px;
+  border:2px solid var(--border); background:transparent;
+  cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s; font-size:13px; color:#fff;
+}
+.ex-card.done .ex-check { background:var(--green); border-color:var(--green); }
+.ex-info { flex:1; min-width:0; }
+.ex-name { font-size:14px; font-weight:500; color:var(--text); }
+.ex-card.done .ex-name { text-decoration:line-through; color:var(--muted); }
+.ex-meta { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+.badge { font-size:10px; font-weight:600; padding:3px 8px; border-radius:5px; letter-spacing:0.5px; }
+.badge-sets { background:#1e1e1e; border:1px solid #2a2a2a; color:#888; }
+.badge-weight { background:var(--orange-dim); border:1px solid rgba(244,97,42,0.3); color:var(--orange); }
+.badge-bw { background:var(--green-dim); border:1px solid rgba(61,190,110,0.2); color:var(--green); }
+.ex-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.weight-input {
+  background:#1a1a1a; border:1px solid var(--border);
+  border-radius:7px; padding:5px 8px;
+  font-family:'DM Sans',sans-serif; font-size:11px;
+  color:var(--text); width:68px; text-align:center;
+}
+.weight-input:focus { outline:none; border-color:var(--orange); }
+.timer-btn {
+  background:#1e1e1e; border:1px solid var(--border);
+  color:var(--muted); border-radius:7px;
+  padding:5px 9px; font-size:11px; cursor:pointer;
+  transition:all 0.2s; font-family:'DM Sans',sans-serif;
+}
+.timer-btn:hover { border-color:var(--orange); color:var(--orange); }
+
+.note-box {
+  background:rgba(244,97,42,0.06); border-left:3px solid var(--orange);
+  border-radius:0 10px 10px 0; padding:12px 16px;
+  font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:24px;
+}
+
+.complete-banner {
+  display:none; background:var(--green-dim);
+  border:1px solid var(--green); border-radius:12px;
+  padding:18px; text-align:center; margin-bottom:18px;
+}
+.complete-banner.visible { display:block; }
+.complete-banner h3 { color:var(--green); font-family:'Bebas Neue',sans-serif; font-size:24px; }
+.complete-banner p { color:var(--muted); font-size:12px; margin-top:3px; }
+
+.finish-btn {
+  width:100%; padding:16px;
+  background:var(--orange); color:#fff; border:none;
+  border-radius:12px; font-family:'Bebas Neue',sans-serif;
+  font-size:20px; letter-spacing:2px; cursor:pointer;
+  transition:background 0.2s; margin-bottom:24px;
+}
+.finish-btn:hover { background:#e05520; }
+
+/* TIMER */
+.timer-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.88); z-index:300;
+  align-items:center; justify-content:center; flex-direction:column; gap:20px;
+}
+.timer-overlay.visible { display:flex; }
+.timer-circle {
+  width:190px; height:190px; border-radius:50%;
+  border:3px solid var(--orange);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+.timer-num { font-family:'Bebas Neue',sans-serif; font-size:70px; color:#fff; line-height:1; }
+.timer-label { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+.timer-close {
+  background:#1e1e1e; border:1px solid var(--border);
+  color:var(--text); padding:10px 28px;
+  border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer;
+}
+
+/* PROGRESS */
+.prog-row { margin-bottom:16px; }
+.prog-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.prog-label .name { color:var(--text); font-weight:500; }
+.prog-label .val { color:var(--orange); font-family:'Bebas Neue',sans-serif; font-size:16px; }
+.prog-bar { height:5px; background:#1e1e1e; border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--orange),#ff8c5a); border-radius:3px; transition:width 0.8s ease; }
+
+/* HISTORY */
+.log-list { display:flex; flex-direction:column; gap:8px; }
+.log-item {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:10px; padding:14px 18px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.log-item .log-date { font-size:11px; color:var(--muted); }
+.log-item .log-day { font-family:'Bebas Neue',sans-serif; font-size:17px; color:#fff; }
+.log-item .log-comp { font-size:11px; color:var(--green); }
+
+.empty-state { text-align:center; padding:48px 24px; color:var(--muted); font-size:13px; }
+.empty-state .icon { font-size:44px; margin-bottom:12px; }
+
+/* AI COACH */
+.setup-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:24px; margin-bottom:16px;
+}
+.setup-card h3 { font-family:'Bebas Neue',sans-serif; font-size:22px; color:#fff; letter-spacing:1px; margin-bottom:8px; }
+.setup-card p { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+.setup-card a { color:var(--orange); }
+.api-input {
+  width:100%; background:#111; border:1px solid var(--border);
+  border-radius:8px; padding:12px 14px;
+  font-family:'DM Sans',sans-serif; font-size:13px;
+  color:var(--text); margin-bottom:10px;
+}
+.api-input:focus { outline:none; border-color:var(--orange); }
+.save-key-btn {
+  background:var(--orange); color:#fff; border:none;
+  border-radius:8px; padding:11px 20px;
+  font-family:'DM Sans',sans-serif; font-size:13px;
+  font-weight:600; cursor:pointer;
+}
+
+.chat-wrap { display:flex; flex-direction:column; height:calc(100vh - 220px); min-height:380px; }
+.chat-messages {
+  flex:1; overflow-y:auto;
+  display:flex; flex-direction:column; gap:12px; padding:4px 0 12px;
+}
+.chat-messages::-webkit-scrollbar { width:3px; }
+.chat-messages::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:2px; }
+
+.msg { max-width:88%; border-radius:14px; padding:12px 16px; font-size:13px; line-height:1.6; animation:fadeUp 0.2s ease; }
+.msg-user { align-self:flex-end; background:var(--orange); color:#fff; border-bottom-right-radius:4px; }
+.msg-ai { align-self:flex-start; background:var(--card); border:1px solid var(--border); color:var(--text); border-bottom-left-radius:4px; }
+.msg-ai .lbl { font-size:10px; font-weight:700; color:var(--orange); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+.msg-ai p { margin-bottom:6px; }
+.msg-ai p:last-child { margin-bottom:0; }
+.msg-ai strong { color:#fff; }
+
+.typing { align-self:flex-start; background:var(--card); border:1px solid var(--border); border-radius:14px; border-bottom-left-radius:4px; padding:14px 16px; display:none; }
+.typing.visible { display:flex; gap:5px; align-items:center; }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--muted); animation:bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay:0.2s; }
+.dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+.quick-prompts { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.qbtn {
+  background:var(--card2); border:1px solid var(--border);
+  color:var(--muted); border-radius:20px;
+  padding:6px 12px; font-size:11px; font-weight:500;
+  cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif;
+}
+.qbtn:hover { border-color:var(--orange); color:var(--orange); }
+
+.chat-row { display:flex; gap:8px; padding-top:10px; border-top:1px solid var(--border); }
+.chat-input {
+  flex:1; background:var(--card); border:1px solid var(--border);
+  border-radius:10px; padding:12px 14px;
+  font-family:'DM Sans',sans-serif; font-size:13px;
+  color:var(--text); resize:none;
+}
+.chat-input:focus { outline:none; border-color:var(--orange); }
+.send-btn {
+  background:var(--orange); color:#fff; border:none;
+  border-radius:10px; padding:12px 16px;
+  font-size:16px; cursor:pointer; flex-shrink:0;
+}
+.send-btn:disabled { background:#333; cursor:not-allowed; }
+
+/* WEEK MODAL */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; align-items:center; justify-content:center; }
+.modal-bg.visible { display:flex; }
+.modal {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:24px; width:90%; max-width:360px;
+}
+.modal h3 { font-family:'Bebas Neue',sans-serif; font-size:22px; color:#fff; margin-bottom:8px; }
+.modal p { font-size:12px; color:var(--muted); margin-bottom:16px; }
+.week-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.wo {
+  background:#1a1a1a; border:1px solid var(--border);
+  border-radius:8px; padding:10px 6px; text-align:center;
+  cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif;
+}
+.wo:hover, .wo.sel { border-color:var(--orange); background:var(--orange-dim); }
+.wo .wn { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--orange); }
+.wo .wl { font-size:9px; color:var(--muted); text-transform:uppercase; }
+.modal-ok {
+  width:100%; padding:12px; background:var(--orange); color:#fff;
+  border:none; border-radius:8px; font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:600; cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">HOOP <span>STRENGTH</span></div>
+  <div class="week-badge" onclick="openWeekModal()">📅 Week <span id="nav-week">1</span></div>
+</nav>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPage('workout',this)">🏋️ Workout</button>
+  <button class="tab" onclick="showPage('ai',this)">🤖 AI Coach</button>
+  <button class="tab" onclick="showPage('progress',this)">📈 Progress</button>
+  <button class="tab" onclick="showPage('history',this)">📋 History</button>
+</div>
+
+<!-- WORKOUT -->
+<div class="page active" id="page-workout">
+  <div class="hero">
+    <div class="hero-tag">Basketball · Off-Season</div>
+    <h1>STRENGTH &<br><span>POWER</span></h1>
+    <p>Lower reps · Heavier weights · Jump higher</p>
+  </div>
+  <div class="stats-strip">
+    <div class="stat-box"><div class="val" id="stat-sessions">0</div><div class="lbl">Sessions</div></div>
+    <div class="stat-box"><div class="val" id="stat-streak">0</div><div class="lbl">Streak</div></div>
+    <div class="stat-box"><div class="val" id="stat-done">0/0</div><div class="lbl">Done Today</div></div>
+  </div>
+  <div class="section-title">Select Day</div>
+  <div class="day-selector">
+    <div class="day-btn selected" onclick="selectDay(0,this)"><div class="d-num">01</div><div class="d-title">Lower Body</div><div class="d-sub">Squat · Hinge</div></div>
+    <div class="day-btn" onclick="selectDay(1,this)"><div class="d-num">02</div><div class="d-title">Upper Body</div><div class="d-sub">Pull · Push</div></div>
+    <div class="day-btn" onclick="selectDay(2,this)"><div class="d-num">03</div><div class="d-title">Power</div><div class="d-sub">Explosive · Jumps</div></div>
+  </div>
+  <div class="complete-banner" id="complete-banner">
+    <h3>🔥 Day Complete!</h3>
+    <p>Great session. Rest up and come back stronger.</p>
+  </div>
+  <div class="section-title" id="ex-title">Exercises</div>
+  <div class="exercise-list" id="exercise-list"></div>
+  <div class="note-box" id="day-note"></div>
+  <button class="finish-btn" onclick="finishWorkout()">FINISH WORKOUT ✓</button>
+</div>
+
+<!-- AI COACH -->
+<div class="page" id="page-ai">
+  <div style="padding-top:16px">
+    <div class="setup-card" id="setup-card">
+      <h3>🔑 Connect AI Coach</h3>
+      <p>Enter your Anthropic API key to unlock your personal AI basketball strength coach. Your key is saved only in your browser — never sent anywhere else.</p>
+      <p>Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+      <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+      <button class="save-key-btn" onclick="saveApiKey()">Save & Connect ✓</button>
+    </div>
+    <div class="quick-prompts">
+      <button class="qbtn" onclick="qp('What weights should I use this week?')">💪 This week's weights</button>
+      <button class="qbtn" onclick="qp('How do I progress next week?')">📈 Next week plan</button>
+      <button class="qbtn" onclick="qp('My shin splints are bad today, what should I modify?')">⚠️ Shin splint mods</button>
+      <button class="qbtn" onclick="qp('Give me a warm up for today')">🔥 Warm up</button>
+      <button class="qbtn" onclick="qp('How do I jump higher for basketball?')">🏀 Jump higher</button>
+      <button class="qbtn" onclick="qp('What should I eat before training?')">🥗 Pre-workout food</button>
+    </div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-ai">
+          <div class="lbl">AI Coach</div>
+          <p>Hey! I'm your AI basketball strength coach. I know your full program and history — box squats at 90kg, shin splints, off-season strength & power focus.</p>
+          <p>Ask me anything: weight adjustments, week-by-week progressions, shin splint modifications, nutrition, or jump training tips. 🏀</p>
+        </div>
+        <div class="typing" id="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+      <div class="chat-row">
+        <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask your AI coach..." onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="page" id="page-progress">
+  <div style="padding-top:20px">
+    <div class="hero-tag" style="margin-bottom:16px">Lift Tracker</div>
+    <div id="progress-bars"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="page-history">
+  <div style="padding-top:20px">
+    <div class="hero-tag" style="margin-bottom:16px">Session History</div>
+    <div class="log-list" id="log-list"></div>
+  </div>
+</div>
+
+<!-- REST TIMER -->
+<div class="timer-overlay" id="timer-overlay">
+  <div style="text-align:center">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:12px">REST TIMER</div>
+    <div class="timer-circle">
+      <div class="timer-num" id="timer-num">120</div>
+      <div class="timer-label">seconds</div>
+    </div>
+  </div>
+  <button class="timer-close" onclick="closeTimer()">Skip Rest</button>
+</div>
+
+<!-- WEEK MODAL -->
+<div class="modal-bg" id="week-modal">
+  <div class="modal">
+    <h3>📅 Set Training Week</h3>
+    <p>Which week of the off-season program are you on? This helps the AI give accurate progression advice.</p>
+    <div class="week-grid" id="week-grid"></div>
+    <button class="modal-ok" onclick="closeWeekModal()">Done</button>
+  </div>
+</div>
+
+<script>
+const PROGRAM = [
+  {
+    title:"Lower Body Strength",
+    note:"⚠️ Shin splints — no explosive plyos or sprinting. Stretch calves well after.",
+    exercises:[
+      {name:"Box Squat",sets:"5×5",weight:"97.5kg",bw:false},
+      {name:"Trap Bar Deadlift",sets:"4×4",weight:"100kg",bw:false},
+      {name:"Romanian Deadlift",sets:"4×5",weight:"95kg",bw:false},
+      {name:"Seated Calf Raises",sets:"5×6",weight:"40kg",bw:false},
+      {name:"Weighted Plank",sets:"3×30s",weight:"10kg",bw:false},
+    ]
+  },
+  {
+    title:"Upper Body Strength",
+    note:"If a set feels too easy, add 2.5kg. If too heavy, drop 5kg and nail the form first.",
+    exercises:[
+      {name:"Neutral Grip Lat Pulldown",sets:"5×5",weight:"62.5kg",bw:false},
+      {name:"Seated Row",sets:"4×5",weight:"60kg",bw:false},
+      {name:"DB Shoulder Press",sets:"4×5",weight:"22.5kg / hand",bw:false},
+      {name:"Weighted Dips",sets:"4×5",weight:"+10kg",bw:false},
+      {name:"Bicep Curls",sets:"3×5",weight:"20kg",bw:false},
+    ]
+  },
+  {
+    title:"Power & Athleticism",
+    note:"⚠️ No sprinting — shin splints protocol. Full rest between jump sets. Each rep = max effort.",
+    exercises:[
+      {name:"Trap Bar Deadlift (explosive)",sets:"4×3",weight:"90kg",bw:false},
+      {name:"Bulgarian Split Squat",sets:"4×5 ea",weight:"40kg / hand",bw:false},
+      {name:"Box Jumps",sets:"4×5",weight:"Max Height",bw:true},
+      {name:"Broad Jumps",sets:"3×5",weight:"Bodyweight",bw:true},
+      {name:"Lateral Bounds",sets:"3×8 ea",weight:"Bodyweight",bw:true},
+    ]
+  }
+];
+
+let state = JSON.parse(localStorage.getItem('hoopState3')||'{}');
+['sessions','streak'].forEach(k=>{ if(!state[k]) state[k]=0; });
+['history','chatHistory'].forEach(k=>{ if(!state[k]) state[k]=[]; });
+if(!state.weights) state.weights={};
+if(!state.checked) state.checked={};
+if(!state.lastDate) state.lastDate=null;
+if(!state.week) state.week=1;
+
+let currentDay=0, timerInt=null, timerSecs=0;
+let apiKey=localStorage.getItem('hoopApiKey')||'';
+
+function save(){ localStorage.setItem('hoopState3',JSON.stringify(state)); }
+
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='progress') renderProgress();
+  if(id==='history') renderHistory();
+  if(id==='ai') checkKey();
+}
+
+function openWeekModal(){
+  const g=document.getElementById('week-grid');
+  g.innerHTML='';
+  for(let w=1;w<=12;w++){
+    const d=document.createElement('div');
+    d.className='wo'+(state.week===w?' sel':'');
+    d.innerHTML=`<div class="wn">${w}</div><div class="wl">Week</div>`;
+    d.onclick=()=>{
+      state.week=w; save();
+      document.querySelectorAll('.wo').forEach(x=>x.classList.remove('sel'));
+      d.classList.add('sel');
+      document.getElementById('nav-week').textContent=w;
+    };
+    g.appendChild(d);
+  }
+  document.getElementById('week-modal').classList.add('visible');
+}
+function closeWeekModal(){ document.getElementById('week-modal').classList.remove('visible'); }
+
+function selectDay(idx,el){
+  currentDay=idx;
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  renderExercises();
+}
+
+function renderExercises(){
+  const day=PROGRAM[currentDay], key='d'+currentDay;
+  const done=state.checked[key]||[];
+  document.getElementById('ex-title').textContent=day.title;
+  document.getElementById('day-note').textContent=day.note;
+  document.getElementById('complete-banner').classList.toggle('visible', done.length===day.exercises.length);
+
+  const list=document.getElementById('exercise-list');
+  list.innerHTML='';
+  day.exercises.forEach((ex,i)=>{
+    const isDone=done.includes(i);
+    const logged=state.weights[key+'_'+i]||'';
+    const card=document.createElement('div');
+    card.className='ex-card'+(isDone?' done':'');
+    card.innerHTML=`
+      <div class="ex-check" onclick="toggleCheck(${i})">${isDone?'✓':''}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">
+          <span class="badge badge-sets">${ex.sets}</span>
+          <span class="badge ${ex.bw?'badge-bw':'badge-weight'}">${ex.weight}</span>
+        </div>
+      </div>
+      <div class="ex-actions">
+        <input class="weight-input" type="text" placeholder="kg used" value="${logged}" onchange="logWeight(${i},this.value)">
+        <button class="timer-btn" onclick="startTimer(120)">⏱ 2m</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  updateStats();
+}
+
+function toggleCheck(i){
+  const key='d'+currentDay;
+  if(!state.checked[key]) state.checked[key]=[];
+  const idx=state.checked[key].indexOf(i);
+  if(idx===-1) state.checked[key].push(i);
+  else state.checked[key].splice(idx,1);
+  save(); renderExercises();
+}
+
+function logWeight(i,val){
+  state.weights['d'+currentDay+'_'+i]=val; save();
+}
+
+function updateStats(){
+  const key='d'+currentDay;
+  const done=(state.checked[key]||[]).length;
+  document.getElementById('stat-sessions').textContent=state.sessions;
+  document.getElementById('stat-streak').textContent=state.streak;
+  document.getElementById('stat-done').textContent=done+'/'+PROGRAM[currentDay].exercises.length;
+  document.getElementById('nav-week').textContent=state.week;
+}
+
+function finishWorkout(){
+  const key='d'+currentDay;
+  const done=(state.checked[key]||[]).length;
+  const total=PROGRAM[currentDay].exercises.length;
+  const pct=Math.round((done/total)*100);
+  const today=new Date().toDateString();
+  if(state.lastDate!==today){ state.sessions++; state.streak++; state.lastDate=today; }
+  state.history.unshift({
+    date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+    day:'Day '+(currentDay+1), title:PROGRAM[currentDay].title,
+    week:'Week '+state.week, completion:pct+'% ('+done+'/'+total+')'
+  });
+  save(); updateStats();
+  document.getElementById('complete-banner').classList.add('visible');
+  alert('🏀 Saved! '+pct+'% complete — Week '+state.week+', Day '+(currentDay+1)+'!');
+}
+
+function startTimer(s){
+  timerSecs=s;
+  document.getElementById('timer-overlay').classList.add('visible');
+  updateTimerDisplay();
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timerSecs--;
+    updateTimerDisplay();
+    if(timerSecs<=0){
+      clearInterval(timerInt);
+      document.getElementById('timer-num').textContent='GO!';
+      setTimeout(closeTimer,1200);
+    }
+  },1000);
+}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSecs/60), s=timerSecs%60;
+  document.getElementById('timer-num').textContent=m>0?m+':'+String(s).padStart(2,'0'):timerSecs;
+}
+function closeTimer(){ clearInterval(timerInt); document.getElementById('timer-overlay').classList.remove('visible'); }
+
+function renderProgress(){
+  const maxW={'Box Squat':160,'Trap Bar Deadlift':170,'Romanian Deadlift':150,'Seated Calf Raises':80,
+    'Neutral Grip Lat Pulldown':110,'Seated Row':110,'DB Shoulder Press':60,'Weighted Dips':80,
+    'Bicep Curls':40,'Trap Bar Deadlift (explosive)':140,'Bulgarian Split Squat':70};
+  const c=document.getElementById('progress-bars');
+  c.innerHTML='';
+  let has=false;
+  PROGRAM.forEach((day,di)=>{
+    day.exercises.forEach((ex,ei)=>{
+      const val=parseFloat(state.weights['d'+di+'_'+ei]);
+      if(!val||ex.bw) return;
+      has=true;
+      const pct=Math.min((val/(maxW[ex.name]||150))*100,100);
+      const row=document.createElement('div');
+      row.className='prog-row';
+      row.innerHTML=`<div class="prog-label"><span class="name">${ex.name}</span><span class="val">${val}kg</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+      c.appendChild(row);
+    });
+  });
+  if(!has) c.innerHTML=`<div class="empty-state"><div class="icon">📊</div><p>Log your actual weights during a workout to see progress here.</p></div>`;
+}
+
+function renderHistory(){
+  const list=document.getElementById('log-list');
+  if(!state.history.length){
+    list.innerHTML=`<div class="empty-state"><div class="icon">📋</div><p>No sessions yet. Finish a workout to see it here.</p></div>`;
+    return;
+  }
+  list.innerHTML=state.history.map(s=>`
+    <div class="log-item">
+      <div><div class="log-day">${s.day} — ${s.title}</div><div class="log-date">${s.date} · ${s.week||''}</div></div>
+      <div class="log-comp">${s.completion}</div>
+    </div>`).join('');
+}
+
+// ── AI COACH ──
+function checkKey(){
+  if(apiKey) document.getElementById('setup-card').style.display='none';
+  else document.getElementById('setup-card').style.display='block';
+}
+
+function saveApiKey(){
+  const v=document.getElementById('api-key-input').value.trim();
+  if(!v.startsWith('sk-')){ alert('Please enter a valid Anthropic API key (starts with sk-)'); return; }
+  apiKey=v;
+  localStorage.setItem('hoopApiKey',apiKey);
+  document.getElementById('setup-card').style.display='none';
+  appendMsg('ai','✅ API key saved! I\'m now connected. Ask me anything about your training. 🏀');
+}
+
+function buildSystem(){
+  const logged=[];
+  PROGRAM.forEach((day,di)=>{
+    day.exercises.forEach((ex,ei)=>{
+      const v=state.weights['d'+di+'_'+ei];
+      if(v) logged.push(`${ex.name}: ${v} (Day ${di+1})`);
+    });
+  });
+  return `You are an expert basketball strength and conditioning coach built into the Hoop Strength training app. You know everything about this athlete.
+
+ATHLETE:
+- Sport: Basketball, off-season training
+- Goals: Get stronger, jump higher
+- Known issue: Shin splints returning — avoid sprinting and high-impact work until healed
+- Current week: Week ${state.week} of 12
+- Sessions completed: ${state.sessions}
+- Current streak: ${state.streak} days
+
+PROGRAM (3 days/week):
+Day 1 Lower Body: Box Squat 5x5@97.5kg, Trap Bar Deadlift 4x4@100kg, RDL 4x5@95kg, Seated Calf Raises 5x6@40kg, Weighted Plank 3x30s@10kg
+Day 2 Upper Body: Neutral Grip Lat Pulldown 5x5@62.5kg, Seated Row 4x5@60kg, DB Shoulder Press 4x5@22.5kg/hand, Weighted Dips 4x5@+10kg, Bicep Curls 3x5@20kg
+Day 3 Power: Trap Bar Deadlift (explosive) 4x3@90kg, Bulgarian Split Squat 4x5@40kg/hand, Box Jumps 4x5 max height, Broad Jumps 3x5, Lateral Bounds 3x8
+
+LOGGED ACTUAL WEIGHTS:
+${logged.length?logged.join('\n'):'None yet'}
+
+RECENT HISTORY:
+${state.history.slice(0,5).map(h=>`${h.date}: ${h.day} ${h.week} - ${h.completion}`).join('\n')||'No sessions yet'}
+
+PROGRESSIVE OVERLOAD BY WEEK:
+Weeks 1-2: Establish base at prescribed weights
+Weeks 3-4: Add 2.5kg lower body, 2.5kg upper if all reps clean
+Weeks 5-6: Add another 2.5-5kg, test capacity
+Weeks 7-8: Deload — drop 10-15%, focus on form
+Weeks 9-10: Reload heavier than week 6
+Weeks 11-12: Peak strength, reduce volume
+
+Keep responses concise and practical — this is a mobile app. Always give specific kg numbers. Consider shin splints in all conditioning advice. Use light formatting for readability.`;
+}
+
+async function sendMessage(text){
+  if(!apiKey){ alert('Add your API key above to use the AI coach.'); return; }
+  const input=document.getElementById('chat-input');
+  const msg=text||input.value.trim();
+  if(!msg) return;
+  input.value='';
+  appendMsg('user',msg);
+  state.chatHistory.push({role:'user',content:msg});
+  if(state.chatHistory.length>20) state.chatHistory=state.chatHistory.slice(-20);
+
+  const typing=document.getElementById('typing');
+  typing.classList.add('visible');
+  scrollChat();
+  document.getElementById('send-btn').disabled=true;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:buildSystem(),
+        messages:state.chatHistory
+      })
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const reply=data.content[0].text;
+    state.chatHistory.push({role:'assistant',content:reply});
+    save();
+    typing.classList.remove('visible');
+    appendMsg('ai',reply);
+  }catch(err){
+    typing.classList.remove('visible');
+    appendMsg('ai','❌ Error: '+err.message+'. Check your API key and try again.');
+  }
+  document.getElementById('send-btn').disabled=false;
+}
+
+function appendMsg(role,text){
+  const container=document.getElementById('chat-messages');
+  const typing=document.getElementById('typing');
+  const div=document.createElement('div');
+  div.className='msg msg-'+role;
+  if(role==='ai'){
+    const fmt=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+    div.innerHTML=`<div class="lbl">AI Coach</div><p>${fmt}</p>`;
+  } else {
+    div.textContent=text;
+  }
+  container.insertBefore(div,typing);
+  scrollChat();
+}
+
+function scrollChat(){ const c=document.getElementById('chat-messages'); c.scrollTop=c.scrollHeight; }
+function qp(t){ sendMessage(t); }
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } }
+
+// INIT
+renderExercises();
+updateStats();
+checkKey();
+</script>
+</body>
+</html>
