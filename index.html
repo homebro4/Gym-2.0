@@ -226,7 +226,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 2
 /* WEEK MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;}
 .modal-bg.visible{display:flex;}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:90%;max-width:360px;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:90%;max-width:400px;max-height:90vh;overflow-y:auto;}
 .modal h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;margin-bottom:8px;}
 .modal p{font-size:12px;color:var(--muted);margin-bottom:16px;}
 .week-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
@@ -235,6 +235,35 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 2
 .wo .wn{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);}
 .wo .wl{font-size:9px;color:var(--muted);text-transform:uppercase;}
 .modal-ok{width:100%;padding:12px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* POST WORKOUT MODAL */
+.pw-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:250;align-items:flex-end;justify-content:center;}
+.pw-modal-bg.visible{display:flex;}
+.pw-modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;}
+.pw-modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.pw-modal h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:#fff;margin-bottom:4px;}
+.pw-modal .pw-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.pw-section{margin-bottom:20px;}
+.pw-section-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.pw-ex-row{background:#111;border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;}
+.pw-ex-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;}
+.pw-weight-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pw-weight-box{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.pw-weight-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
+.pw-weight-input{width:100%;background:transparent;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--orange);outline:none;}
+.pw-weight-input::placeholder{color:var(--muted);font-weight:400;font-size:13px;}
+.pw-next-weight{font-size:15px;font-weight:600;color:var(--green);}
+.pw-next-note{font-size:10px;color:var(--muted);margin-top:2px;}
+.pw-summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.pw-summary-row:last-child{border-bottom:none;}
+.pw-summary-label{font-size:13px;color:var(--text);}
+.pw-summary-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);}
+.pw-btn-row{display:flex;gap:10px;margin-top:20px;}
+.pw-btn{flex:1;padding:14px;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;border:none;}
+.pw-btn-primary{background:var(--orange);color:#fff;}
+.pw-btn-secondary{background:var(--card2);border:1px solid var(--border);color:var(--muted);}
+.prog-bump{display:inline-block;background:var(--green-dim);border:1px solid rgba(61,190,110,0.3);color:var(--green);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:6px;}
+.prog-same{display:inline-block;background:#1a1a1a;border:1px solid var(--border);color:var(--muted);font-size:10px;padding:2px 7px;border-radius:4px;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -398,6 +427,42 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 2
     </div>
   </div>
   <button class="timer-close" onclick="closeTimer()">Skip</button>
+</div>
+
+<!-- POST WORKOUT MODAL -->
+<div class="pw-modal-bg" id="pw-modal-bg">
+  <div class="pw-modal" id="pw-modal">
+    <div class="pw-modal-handle"></div>
+    <h2 id="pw-title">🏀 Log Workout</h2>
+    <div class="pw-sub" id="pw-sub">Enter the weights you actually used today</div>
+
+    <!-- Step 1: Weight logging -->
+    <div id="pw-step1">
+      <div class="pw-section">
+        <div class="pw-section-title">Log Today's Weights</div>
+        <div id="pw-ex-inputs"></div>
+      </div>
+      <div class="pw-btn-row">
+        <button class="pw-btn pw-btn-secondary" onclick="closePwModal()">Cancel</button>
+        <button class="pw-btn pw-btn-primary" onclick="pwConfirmWeights()">SAVE & SEE NEXT WEEK ➤</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Summary + next week weights -->
+    <div id="pw-step2" style="display:none">
+      <div class="pw-section">
+        <div class="pw-section-title">Session Summary</div>
+        <div id="pw-summary-stats"></div>
+      </div>
+      <div class="pw-section">
+        <div class="pw-section-title">Next Week's Targets 📈</div>
+        <div id="pw-next-weights"></div>
+      </div>
+      <div class="pw-btn-row">
+        <button class="pw-btn pw-btn-primary" onclick="pwApplyAndClose()" style="flex:2">APPLY TO PROGRAM ✓</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- WEEK MODAL -->
@@ -629,13 +694,173 @@ function updateStats(){
   document.getElementById('nav-week').textContent=state.week;
 }
 
+// ── POST WORKOUT MODAL ──
+let pwNextWeights = {}; // stores computed next-week weights keyed by ex index
+
 function finishWorkout(){
-  const key='d'+currentDay,done=(state.checked[key]||[]).length,total=prog()[currentDay].exercises.length;
-  const pct=Math.round((done/total)*100),today=new Date().toDateString();
-  if(state.lastDate!==today){ state.sessions++; state.streak++; state.lastDate=today; }
-  state.history.unshift({date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),day:'Day '+(currentDay+1),title:prog()[currentDay].title,week:'Week '+state.week,completion:pct+'% ('+done+'/'+total+')'});
-  save(); updateStats(); document.getElementById('complete-banner').classList.add('visible');
-  alert('🏀 Saved! '+pct+'% — Week '+state.week+', Day '+(currentDay+1)+'!');
+  const day = prog()[currentDay];
+  document.getElementById('pw-title').textContent = '🏀 Day '+(currentDay+1)+' Complete!';
+  document.getElementById('pw-sub').textContent = day.title+' · Week '+state.week;
+
+  // Build weight input rows
+  const inputsEl = document.getElementById('pw-ex-inputs');
+  inputsEl.innerHTML = '';
+  day.exercises.forEach((ex, i) => {
+    if(ex.bw) return; // skip bodyweight
+    const key = 'd'+currentDay+'_'+i;
+    const prev = state.weights[key] || '';
+    const row = document.createElement('div');
+    row.className = 'pw-ex-row';
+    row.innerHTML = `
+      <div class="pw-ex-name">${ex.name}</div>
+      <div class="pw-weight-row">
+        <div class="pw-weight-box">
+          <div class="pw-weight-label">Prescribed</div>
+          <div class="pw-next-weight" style="color:var(--muted)">${ex.weight}</div>
+        </div>
+        <div class="pw-weight-box">
+          <div class="pw-weight-label">Actual Weight Used</div>
+          <input class="pw-weight-input" id="pw-inp-${i}" type="number" step="0.5" placeholder="kg used" value="${prev}">
+        </div>
+      </div>`;
+    inputsEl.appendChild(row);
+  });
+
+  // Show step 1
+  document.getElementById('pw-step1').style.display = 'block';
+  document.getElementById('pw-step2').style.display = 'none';
+  document.getElementById('pw-modal-bg').classList.add('visible');
+}
+
+function closePwModal(){
+  document.getElementById('pw-modal-bg').classList.remove('visible');
+}
+
+function calcNextWeight(current, actual, week){
+  // Progressive overload rules based on week
+  const bump = week <= 2 ? 0 : week <= 4 ? 2.5 : week <= 6 ? 5 : week <= 8 ? -Math.round(actual*0.12/2.5)*2.5 : week <= 10 ? 5 : 0;
+  // If actual > prescribed, they went heavier — base next week off actual
+  const base = actual > 0 ? actual : parseFloat(current) || 0;
+  const next = Math.round((base + bump) / 2.5) * 2.5;
+  return { next: next > 0 ? next : base, bump };
+}
+
+function pwConfirmWeights(){
+  const day = prog()[currentDay];
+  pwNextWeights = {};
+
+  // Save actual weights
+  day.exercises.forEach((ex, i) => {
+    if(ex.bw) return;
+    const inp = document.getElementById('pw-inp-'+i);
+    if(inp){
+      const val = inp.value.trim();
+      if(val) state.weights['d'+currentDay+'_'+i] = val;
+    }
+  });
+  save();
+
+  // Build summary stats
+  const key = 'd'+currentDay;
+  const done = (state.checked[key]||[]).length;
+  const total = day.exercises.length;
+  const pct = Math.round((done/total)*100);
+
+  const summaryEl = document.getElementById('pw-summary-stats');
+  summaryEl.innerHTML = `
+    <div class="pw-summary-row"><span class="pw-summary-label">Exercises completed</span><span class="pw-summary-val">${done}/${total}</span></div>
+    <div class="pw-summary-row"><span class="pw-summary-label">Completion</span><span class="pw-summary-val">${pct}%</span></div>
+    <div class="pw-summary-row"><span class="pw-summary-label">Week</span><span class="pw-summary-val">Week ${state.week}</span></div>
+    <div class="pw-summary-row"><span class="pw-summary-label">Session streak</span><span class="pw-summary-val">${state.streak+1} days</span></div>
+  `;
+
+  // Build next week targets
+  const nextEl = document.getElementById('pw-next-weights');
+  nextEl.innerHTML = '';
+  const nextWeek = state.week + 1;
+  let anyChange = false;
+
+  day.exercises.forEach((ex, i) => {
+    if(ex.bw){
+      const r = document.createElement('div');
+      r.className = 'pw-ex-row';
+      r.innerHTML = `<div class="pw-ex-name">${ex.name}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">Bodyweight — focus on height and explosiveness</div>`;
+      nextEl.appendChild(r);
+      return;
+    }
+    const actual = parseFloat(state.weights['d'+currentDay+'_'+i]) || 0;
+    const current = ex.weight;
+    const {next, bump} = calcNextWeight(current, actual, state.week);
+    pwNextWeights[i] = next+'kg';
+
+    const changed = next !== actual && bump !== 0;
+    if(changed) anyChange = true;
+    const bumpLabel = bump > 0 ? `<span class="prog-bump">+${bump}kg</span>` : bump < 0 ? `<span class="prog-bump" style="background:var(--orange-dim);border-color:rgba(244,97,42,0.3);color:var(--orange)">Deload ${bump}kg</span>` : `<span class="prog-same">Hold</span>`;
+
+    const r = document.createElement('div');
+    r.className = 'pw-ex-row';
+    r.innerHTML = `
+      <div class="pw-ex-name">${ex.name} ${bumpLabel}</div>
+      <div class="pw-weight-row">
+        <div class="pw-weight-box">
+          <div class="pw-weight-label">This Week (actual)</div>
+          <div class="pw-next-weight" style="color:var(--muted)">${actual>0?actual+'kg':current}</div>
+        </div>
+        <div class="pw-weight-box">
+          <div class="pw-weight-label">Next Week Target</div>
+          <div class="pw-next-weight">${next}kg</div>
+          <div class="pw-next-note">Week ${nextWeek} target</div>
+        </div>
+      </div>`;
+    nextEl.appendChild(r);
+  });
+
+  if(!anyChange && nextWeek <= 12){
+    const note = document.createElement('div');
+    note.className = 'note-box';
+    note.style.marginTop = '10px';
+    note.textContent = '💡 Weights held for now — add 2.5kg next session if all reps felt clean and controlled.';
+    nextEl.appendChild(note);
+  }
+
+  // Log to history
+  const today = new Date().toDateString();
+  if(state.lastDate !== today){ state.sessions++; state.streak++; state.lastDate=today; }
+  state.history.unshift({
+    date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+    day: 'Day '+(currentDay+1), title: day.title,
+    week: 'Week '+state.week,
+    completion: pct+'% ('+done+'/'+total+')',
+    weights: day.exercises.map((ex,i)=>ex.bw?null:state.weights['d'+currentDay+'_'+i]).filter(Boolean)
+  });
+  save(); updateStats();
+  document.getElementById('complete-banner').classList.add('visible');
+
+  // Show step 2
+  document.getElementById('pw-step1').style.display = 'none';
+  document.getElementById('pw-step2').style.display = 'block';
+}
+
+function pwApplyAndClose(){
+  // Apply next week weights to program
+  const day = prog()[currentDay];
+  Object.keys(pwNextWeights).forEach(i => {
+    if(day.exercises[i] && !day.exercises[i].bw){
+      day.exercises[i].weight = pwNextWeights[i];
+    }
+  });
+  // Auto-advance week
+  if(state.week < 12) state.week++;
+  save();
+  renderExercises();
+  updateStats();
+  closePwModal();
+  // Small toast confirmation
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 24px;border-radius:30px;font-size:13px;font-weight:600;z-index:400;animation:fadeUp 0.3s ease';
+  toast.textContent = '✓ Program updated for Week '+state.week;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 2800);
 }
 
 // ══════════════════════════════
